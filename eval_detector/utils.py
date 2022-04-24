@@ -1,8 +1,5 @@
-import os
 from loguru import logger
-import evaluation
-from collections import defaultdict
-from evaluation import precision_recall
+from .detection import precision_recall
 import numpy as np
 
 def encode_imagenames(gt_filename):
@@ -47,7 +44,7 @@ def make_calculation(gt_filename, dt_filename, iou_threshold=0.5):
 
     """
     img_encoding, class_encoding = encode_imagenames(gt_filename)
-    logger.info(class_encoding)
+    # logger.info(class_encoding)
     with open(gt_filename, "r") as f:
         gt_samples, gt_classes= txt2dict(f.readlines(), img_encoding, class_encoding)
     with open(dt_filename, "r") as f:
@@ -55,11 +52,12 @@ def make_calculation(gt_filename, dt_filename, iou_threshold=0.5):
 
     classes = gt_classes.union(dt_classes)
 
-    logger.info(len(classes))
+    # logger.info(len(classes))
     pr_bboxes = np.array(dt_samples)
     gt_bboxes = np.array(gt_samples)
-    recall_per_class, precision_per_class, iou_per_class = precision_recall(pr_bboxes, gt_bboxes, len(classes), iou_threshold)
-    logger.info((recall_per_class, precision_per_class, iou_per_class))
+    recall_per_class, precision_per_class = precision_recall(pr_bboxes, gt_bboxes, len(classes), iou_threshold)
+    logger.info(f"Recall per class: {recall_per_class}")
+    logger.info(f"Precision per class: {precision_per_class}")
 
 
 def txt2dict(lines, img_encoding, class_encoding):
@@ -75,7 +73,6 @@ def txt2dict(lines, img_encoding, class_encoding):
         samples: list of [image_id, predicted_class_id, confidence_score, x1, y1, x2, y2]
         classes: set of classes used in the file
     """
-    logger.info(len(lines))
     samples = []
     classes = set()
     for line in lines:

@@ -1,6 +1,6 @@
-import os
+#!/usr/bin/env python3
 import click
-import utils
+import eval_detector.utils as utils
 
 @click.command()
 @click.option("--ground", "-g", help="Path to file with Ground Truth bounding boxes")

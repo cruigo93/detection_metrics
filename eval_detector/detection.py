@@ -32,7 +32,7 @@ def intersection_over_union(predicted_bboxes, target_bboxes):
     box2_y2 = target_bboxes[:, 3]
 
     x1 = np.maximum(box1_x1, box2_x1)
-    logger.info((x1, box1_x1, box2_x1))
+    # logger.info((x1, box1_x1, box2_x1))
     y1 = np.maximum(box1_y1, box2_y1)
     x2 = np.minimum(box1_x2, box2_x2)
     y2 = np.minimum(box1_y2, box2_y2)
@@ -60,7 +60,6 @@ def precision_recall(true_boxes, pred_boxes, class_labels, iou_threshold=0.5):
     epsilon = 1e-16
     recall_per_class = {}
     precision_per_class = {}
-    iou_per_class = {}
     for c in range(class_labels):
         detections = pred_boxes[pred_boxes[:, 1] == c]
         ground_truths = true_boxes[true_boxes[:, 1] == c]
@@ -74,7 +73,6 @@ def precision_recall(true_boxes, pred_boxes, class_labels, iou_threshold=0.5):
         # If none exists for this class then we can safely skip
         if total_true_bboxes == 0:
             continue
-        detection_ious = []
         for detection_idx, detection in enumerate(detections):
             ground_truth_img = ground_truths[ground_truths[:, 0] == detection[0]]
             num_gts = len(ground_truth_img)
@@ -82,7 +80,7 @@ def precision_recall(true_boxes, pred_boxes, class_labels, iou_threshold=0.5):
                 best_iou = 0
             else:
                 ious = intersection_over_union(detection[-4:][None, :], ground_truth_img[:, -4:])
-                logger.info(ious)
+                # logger.info(ious)
                 best_gt_idx = np.argmax(ious)
                 best_iou = ious[best_gt_idx]
             if best_iou > iou_threshold:
@@ -96,13 +94,11 @@ def precision_recall(true_boxes, pred_boxes, class_labels, iou_threshold=0.5):
             # if IOU is lower then the detection is a false positive
             else:
                 FP[detection_idx] = 1
-            logger.info(best_iou)
-            detection_ious.append(best_iou)
+            # logger.info(best_iou)
         TP_cumsum = np.cumsum(TP, axis=0)
         FP_cumsum = np.cumsum(FP, axis=0)
         recalls = TP_cumsum / (total_true_bboxes + epsilon)
         precisions = TP_cumsum / (TP_cumsum + FP_cumsum + epsilon)
         recall_per_class[c] = np.mean(recalls)
         precision_per_class[c] = np.mean(precisions)
-        iou_per_class[c] = np.mean(detection_ious)
-    return recall_per_class, precision_per_class, iou_per_class
+    return recall_per_class, precision_per_class
